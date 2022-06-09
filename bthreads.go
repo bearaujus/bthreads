@@ -13,9 +13,9 @@ const (
 	appName    = "BThreads"
 	appVersion = "1.0"
 
-	defaultName             = "Untitled bthreads instance"
+	defaultName             = "An bthreads instance"
 	defaultFuncsThreadCount = 1
-	defaultThreadsDelay     = 60 * time.Millisecond
+	defaultThreadsDelay     = 100000
 	defaultLogsDelay        = 30 * time.Millisecond
 	defaultStartDelay       = 3 * time.Second
 )
@@ -72,7 +72,7 @@ func (st *threads) AddFuncs(funcs ...func() bool) {
 
 func (st *threads) Start() {
 	fmt.Println(color.HiBlueString("[ %v ] ", time.Now().Local().Format(time.RFC1123)) +
-		color.HiYellowString("[ %v v%v ][BETA]", appName, appVersion))
+		color.HiYellowString("[ %v v%v ][ BETA ]", appName, appVersion))
 	fmt.Println(color.HiWhiteString("  Verifying instance ..."))
 	if !st.verifyInstance() {
 		return
@@ -142,7 +142,7 @@ func (st *threads) runLogger() {
 
 		// Title
 		// color.HiGreenString("%v ", st.startTime.Format(time.RFC1123))
-		fmt.Println(color.HiYellowString("[ %v v%v ] [BETA]", appName, appVersion))
+		fmt.Println(color.HiYellowString("[ %v v%v ][ BETA ]", appName, appVersion))
 
 		fmt.Println(color.HiWhiteString("  " + st.name))
 
@@ -164,15 +164,15 @@ func (st *threads) runLogger() {
 			color.HiWhiteString(fmt.Sprintf("%.2f it/s", ths)))
 
 		fmt.Println(color.HiMagentaString("  Success Rate\t") +
-			color.HiWhiteString(fmt.Sprintf("%.2f", sr)+" %"))
+			color.HiGreenString(fmt.Sprintf("%.2f", sr)+" %"))
 
 		fmt.Println()
 
 		fmt.Println(color.HiMagentaString("  Success\t") +
-			color.HiWhiteString(fmt.Sprint(st.numIterSuccess)+" it"))
+			color.HiGreenString(fmt.Sprint(st.numIterSuccess)+" it"))
 
 		fmt.Println(color.HiMagentaString("  Fail\t\t") +
-			color.HiWhiteString(fmt.Sprint(st.numIterFail)+" it"))
+			color.RedString(fmt.Sprint(st.numIterFail)+" it"))
 
 		fmt.Println(color.HiMagentaString("  Total\t \t") +
 			color.HiWhiteString(fmt.Sprint(st.numIter)+" it"))
@@ -183,14 +183,14 @@ func (st *threads) runLogger() {
 		fmt.Println(color.HiYellowString("[ Worker ]"))
 
 		mlog := make(map[int]string)
-		fmt.Println(color.HiWhiteString("  Thread ID\tTotal\t\tSuccess\t\tFail"))
+		fmt.Println(color.HiMagentaString("  Thread ID\tSuccess\t\tFail\t\tTotal"))
 		st.threadsData.Range(func(key, value interface{}) bool {
 			threadID, _ := key.(int)
 			td, _ := value.(*threadData)
-			r := color.HiCyanString("  Thread-%v\t", threadID) +
-				color.HiWhiteString("%v\t\t", td.num) +
+			r := color.HiWhiteString("  Thread-%v\t", threadID) +
 				color.HiGreenString("%v\t\t", td.numSuccess) +
-				color.RedString("%v", td.numFail)
+				color.RedString("%v\t\t", td.numFail) +
+				color.HiWhiteString("%v", td.num)
 			mlog[key.(int)] = r
 			return true
 		})
