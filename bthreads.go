@@ -17,7 +17,7 @@ import (
 // App Const
 const (
 	appName    = "BThreads"
-	appVersion = "1.4"
+	appVersion = "1.5"
 )
 
 // Default Const
