@@ -226,10 +226,10 @@ func (st *instance) printSimpleLog() {
 	ths := float64(st.numIter) / float64(te.Second())
 
 	// Calculate success rate
-	sr := (float64(st.numIterSuccess) / float64(st.numIter)) * 100
+	sr := (float64(st.numIterSuccess) / float64(st.numIter)) * float64(100)
 
 	// Calculate fail rate
-	fr := 100.0 - sr
+	fr := (float64(st.numIterFail) / float64(st.numIter)) * float64(100)
 
 	fmt.Println(strings.Join([]string{
 		st.getHeader(),
