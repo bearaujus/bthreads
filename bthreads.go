@@ -4,18 +4,20 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/Bearaujus/bthreads/pkg/util"
 	"github.com/fatih/color"
+	"github.com/olekukonko/tablewriter"
 )
 
 // App Const
 const (
 	appName    = "BThreads"
-	appVersion = "1.3"
+	appVersion = "1.4"
 )
 
 // Default Const
@@ -142,13 +144,17 @@ func (st *instance) Start() {
 
 func (st *instance) runAllFunc() {
 	var grID int
+
 	// Iterate over gouroutines count
 	for i := 0; i < st.funcGoroutinesCount; i++ {
+
 		// Iterate over input func
 		for _, f := range st.funcs {
 			grID++
+
 			// Init instance data with goroutineID
 			st.instanceData.Store(grID, &instanceData{})
+
 			// Run and put the func into goruoutines
 			go st.runFunc(grID, f)
 		}
@@ -171,17 +177,20 @@ func (st *instance) runFunc(grID int, f func() bool) {
 
 func (st *instance) log() {
 	for {
-		// Make delay relative to logDelay
-		<-time.After(st.logDelay)
+		// Clear screen
+		util.ClearScreen()
 
 		// Print simple log if hideWorkerData is true
+		st.printSimpleLog()
 		if st.hideWorkerData {
-			util.ClearPrintWithGap(st.getSimpleLog())
 			continue
 		}
 
 		// Print advanced log i hideWorkerData is false
-		util.ClearPrintWithGap(st.getAdvancedLog())
+		st.printWorkerLog()
+
+		// Make delay relative to logDelay
+		<-time.After(st.logDelay)
 	}
 }
 
@@ -209,7 +218,7 @@ func (st *instance) getHeader() string {
 	}, "\n")
 }
 
-func (st *instance) getSimpleLog() string {
+func (st *instance) printSimpleLog() {
 	// Calculate time elapsed
 	te := time.Time{}.Add(time.Now().Local().Sub(st.startTime))
 
@@ -222,24 +231,25 @@ func (st *instance) getSimpleLog() string {
 	// Calculate fail rate
 	fr := 100.0 - sr
 
-	return strings.Join([]string{
+	fmt.Println(strings.Join([]string{
 		st.getHeader(),
 
 		// Instance
 		color.HiYellowString("[ Instance ]"),
 		color.HiWhiteString("  Time Elapsed\t") + color.HiWhiteString(te.Format("15:04:05")),
+		"",
+		color.HiWhiteString("  Total Iter\t") + color.HiWhiteString("%v it", st.numIter),
 		color.HiWhiteString("  Iter Speed\t") + color.HiWhiteString(fmt.Sprintf("%.2f it/s", ths)),
-		color.HiWhiteString("  Total\t\t") + color.HiWhiteString("%v it", st.numIter),
 		"",
 		color.HiWhiteString("  Success Rate\t") + color.HiGreenString("%.2f %v", sr, "%") + color.HiWhiteString(" | %v it", st.numIterSuccess),
 		color.HiWhiteString("  Fail Rate\t") + color.RedString("%.2f %v", fr, "%") + color.HiWhiteString(" | %v it", st.numIterFail),
 		"",
-	}, "\n")
+	}, "\n"))
 }
 
-func (st *instance) getAdvancedLog() string {
+func (st *instance) printWorkerLog() {
 	// Initialize output for worker data
-	wd := make(map[int]string)
+	wd := make(map[int][]string)
 
 	// Iterate over sync.Map
 	st.instanceData.Range(func(key, value interface{}) bool {
@@ -249,36 +259,32 @@ func (st *instance) getAdvancedLog() string {
 		td, _ := value.(*instanceData)
 
 		// Add data to worker data
-		wd[grID] = strings.Join([]string{
-			color.HiCyanString("  gr-%v\t\t", grID),
-			color.HiGreenString("%v\t\t", td.numSuccess),
-			color.RedString("%v\t\t", td.numFail),
+		wd[grID] = []string{
+			color.HiCyanString("gr-%v", grID),
+			color.HiGreenString("%v", td.numSuccess),
+			color.RedString("%v", td.numFail),
 			color.HiWhiteString("%v", td.num),
-		}, "")
+		}
 
 		return true
 	})
 
-	// Initialize sorted worker data
-	swd := []string{}
+	// Initialize output table
+	ot := tablewriter.NewWriter(os.Stdout)
+	ot.SetHeader([]string{"Goroutine", "Success", "Fail", "Total"})
+	ot.SetAlignment(tablewriter.ALIGN_LEFT)
+	ot.SetTablePadding("\t")
 
 	// Iterate over worker data
 	for i := 0; i < len(wd); i++ {
-		// Add worker data to sorted worker data
-		swd = append(swd, wd[i+1])
+		// Add worker data to output table
+		ot.Append(wd[i+1])
 	}
 
-	// Put sorted worker data to string
-	workersTable := strings.Join(swd, "\n")
-	return strings.Join([]string{
-		st.getSimpleLog(),
-
-		// Workers
-		color.HiYellowString("[ Workers ]"),
-		color.HiWhiteString("  Goroutine\tSuccess\t\tFail\t\tTotal"),
-		workersTable,
-		"",
-	}, "\n")
+	// Workers
+	fmt.Println(color.HiYellowString("[ Workers ]"))
+	ot.Render()
+	fmt.Println()
 }
 
 func (st *instance) syncCount(grID int, isSuccess bool) {

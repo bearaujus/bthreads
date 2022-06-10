@@ -27,7 +27,7 @@ var (
 	}
 )
 
-func clearScreen() {
+func ClearScreen() {
 	if f, ok := cmdFunc[runtime.GOOS]; !ok {
 		panic("Your platform is unsupported!")
 	} else {
@@ -36,11 +36,11 @@ func clearScreen() {
 }
 
 func ClearPrint(param string) {
-	clearScreen()
+	ClearScreen()
 	fmt.Println(param)
 }
 
 func ClearPrintWithGap(param string) {
-	clearScreen()
+	ClearScreen()
 	fmt.Printf("\n%v\n", param)
 }
