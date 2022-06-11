@@ -169,9 +169,15 @@ func (st *instance) runFunc(grID int, f func() bool) {
 		// Run inputed func
 		res := f()
 
-		// Sync data for monitoring
+		// Sync count data for monitoring
 		st.syncCount(grID, res)
-		st.syncData(grID, res)
+
+		// If worker data is hided
+		if !st.hideWorkerData {
+
+			// Sync worker data for monitoring
+			st.syncData(grID, res)
+		}
 
 		// Make delay relative to goroutinesDelay
 		<-time.After(st.goroutinesDelay)
