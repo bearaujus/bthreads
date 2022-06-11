@@ -47,18 +47,19 @@ type instance struct {
 	startDelay          time.Duration
 	hideWorkerData      bool
 
-	numIter        int
-	numIterSuccess int
-	numIterFail    int
+	numIter        int64
+	numIterSuccess int64
+	numIterFail    int64
 
 	funcs        []func() bool
 	instanceData sync.Map
 }
 
 type instanceData struct {
-	num        int
-	numSuccess int
-	numFail    int
+	num        int64
+	numSuccess int64
+	numFail    int64
+	fIndex     int
 }
 
 func NewInstance(param *Config) (*instance, error) {
@@ -149,11 +150,13 @@ func (st *instance) runAllFunc() {
 	for i := 0; i < st.funcGoroutinesCount; i++ {
 
 		// Iterate over input func
-		for _, f := range st.funcs {
+		for fIndex, f := range st.funcs {
 			grID++
 
 			// Init instance data with goroutineID
-			st.instanceData.Store(grID, &instanceData{})
+			st.instanceData.Store(grID, &instanceData{
+				fIndex: fIndex,
+			})
 
 			// Run and put the func into goruoutines
 			go st.runFunc(grID, f)
@@ -241,15 +244,15 @@ func (st *instance) printSimpleLog() {
 		color.HiWhiteString("  Total Iter\t") + color.HiWhiteString("%v it", st.numIter),
 		color.HiWhiteString("  Iter Speed\t") + color.HiCyanString(fmt.Sprintf("%.2f it/s", ths)),
 		"",
-		color.HiWhiteString("  Success Rate\t") + color.HiGreenString("%.2f %v", sr, "%") + color.HiWhiteString(" | %v it", st.numIterSuccess),
-		color.HiWhiteString("  Fail Rate\t") + color.RedString("%.2f %v", fr, "%") + color.HiWhiteString(" | %v it", st.numIterFail),
+		color.HiWhiteString("  Success Rate\t") + color.HiGreenString("%.2f %v", sr, "%") + color.HiWhiteString(" %v it", st.numIterSuccess),
+		color.HiWhiteString("  Fail Rate\t") + color.RedString("%.2f %v", fr, "%") + color.HiWhiteString(" %v it", st.numIterFail),
 		"",
 	}, "\n"))
 }
 
 func (st *instance) printWorkerLog() {
 	// Initialize output for worker data
-	wd := make(map[int][]string)
+	wd := make(map[int]map[int][]string)
 
 	// Iterate over sync.Map
 	st.instanceData.Range(func(key, value interface{}) bool {
@@ -259,8 +262,10 @@ func (st *instance) printWorkerLog() {
 		td, _ := value.(*instanceData)
 
 		// Add data to worker data
-		wd[grID] = []string{
+		wd[grID] = make(map[int][]string)
+		wd[grID][td.fIndex] = []string{
 			color.HiCyanString("gr-%v", grID),
+			color.HiWhiteString("%v", td.fIndex),
 			color.HiGreenString("%v", td.numSuccess),
 			color.RedString("%v", td.numFail),
 			color.HiWhiteString("%v", td.num),
@@ -271,14 +276,16 @@ func (st *instance) printWorkerLog() {
 
 	// Initialize output table
 	ot := tablewriter.NewWriter(os.Stdout)
-	ot.SetHeader([]string{"Goroutine", "Success", "Fail", "Total"})
+	ot.SetHeader([]string{"Goroutine", "FIndex", "Success", "Fail", "Total"})
 	ot.SetAlignment(tablewriter.ALIGN_LEFT)
-	ot.SetTablePadding("\t")
+	ot.SetAutoFormatHeaders(false)
 
-	// Iterate over worker data
-	for i := 0; i < len(wd); i++ {
-		// Add worker data to output table
-		ot.Append(wd[i+1])
+	// Sort workers data
+	for i := 0; i < len(st.funcs); i++ {
+		for j := 0; j < len(wd); j++ {
+			// Add worker data to output table
+			ot.Append(wd[j+1][i])
+		}
 	}
 
 	// Workers
