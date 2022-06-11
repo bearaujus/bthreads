@@ -17,7 +17,7 @@ import (
 // App Const
 const (
 	appName    = "BThreads"
-	appVersion = "1.5"
+	appVersion = "1.6"
 )
 
 // Default Const
@@ -220,10 +220,10 @@ func (st *instance) getHeader() string {
 
 func (st *instance) printSimpleLog() {
 	// Calculate time elapsed
-	te := time.Time{}.Add(time.Now().Local().Sub(st.startTime))
+	td := time.Now().Local().Sub(st.startTime)
 
 	// Calculate iter speed
-	ths := float64(st.numIter) / float64(te.Second())
+	ths := float64(st.numIter) / float64(td.Seconds())
 
 	// Calculate success rate
 	sr := (float64(st.numIterSuccess) / float64(st.numIter)) * float64(100)
@@ -236,10 +236,10 @@ func (st *instance) printSimpleLog() {
 
 		// Instance
 		color.HiYellowString("[ Instance ]"),
-		color.HiWhiteString("  Time Elapsed\t") + color.HiWhiteString(te.Format("15:04:05")),
+		color.HiWhiteString("  Time Elapsed\t") + color.HiCyanString(td.String()),
 		"",
 		color.HiWhiteString("  Total Iter\t") + color.HiWhiteString("%v it", st.numIter),
-		color.HiWhiteString("  Iter Speed\t") + color.HiWhiteString(fmt.Sprintf("%.2f it/s", ths)),
+		color.HiWhiteString("  Iter Speed\t") + color.HiCyanString(fmt.Sprintf("%.2f it/s", ths)),
 		"",
 		color.HiWhiteString("  Success Rate\t") + color.HiGreenString("%.2f %v", sr, "%") + color.HiWhiteString(" | %v it", st.numIterSuccess),
 		color.HiWhiteString("  Fail Rate\t") + color.RedString("%.2f %v", fr, "%") + color.HiWhiteString(" | %v it", st.numIterFail),
