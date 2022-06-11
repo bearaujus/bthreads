@@ -9,7 +9,12 @@ import (
 
 func TestYourLuck() {
 	// Initialize bthread instance
-	bt, err := bthreads.NewInstance(&bthreads.Config{})
+	bt, err := bthreads.NewInstance(&bthreads.Config{
+		// Set instance name
+		Name: "Probability to get number less than 7 from random number 1 - 1000",
+		// Show simple monitor
+		HideWorkersData: true,
+	})
 	if err != nil {
 		log.Fatal(err)
 		return
