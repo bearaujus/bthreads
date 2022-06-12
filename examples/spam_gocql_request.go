@@ -25,7 +25,6 @@ func SpamGocqlRequest(session *gocql.Session, tableName string) {
 	// Add funcs
 	bt.AddFunc(func() bool {
 		var count int
-
 		if err := session.Query(fmt.Sprintf(`SELECT COUNT(*) FROM %v`, tableName)).Scan(
 			&count,
 		); err != nil {
