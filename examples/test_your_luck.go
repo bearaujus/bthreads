@@ -25,7 +25,6 @@ func TestYourLuck() {
 
 	// Add func
 	bt.AddFunc(func() bool {
-
 		rand.Seed(seed)
 		randomNumber := rand.Intn(max-min) + min
 		seed++
