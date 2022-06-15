@@ -9,7 +9,7 @@ import (
 	"github.com/gocql/gocql"
 )
 
-func SpamGocqlRequest(session *gocql.Session, dbName string) {
+func SpamGocqlRequest(session *gocql.Session, tableName string) {
 	// Initialize bthread instance
 	bt, err := bthreads.NewInstance(&bthreads.Config{
 		// Add delay between goroutines before it revoked by endless loop
@@ -25,8 +25,7 @@ func SpamGocqlRequest(session *gocql.Session, dbName string) {
 	// Add funcs
 	bt.AddFunc(func() bool {
 		var count int
-
-		if err := session.Query(fmt.Sprintf(`SELECT COUNT(*) FROM %v LIMIT 1`, dbName)).Scan(
+		if err := session.Query(fmt.Sprintf(`SELECT COUNT(*) FROM %v`, tableName)).Scan(
 			&count,
 		); err != nil {
 			return false
