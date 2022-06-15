@@ -231,13 +231,23 @@ func (st *instance) printSimpleLog() {
 	td := time.Now().Local().Sub(st.startTime)
 
 	// Calculate iter speed
-	ths := float32(st.numIter) / float32(td.Seconds())
+	ths := float64(st.numIter) / float64(td.Seconds())
 
 	// Calculate success rate
 	sr := percent.PercentOf(int(st.numIterSuccess), int(st.numIter))
 
+	// Because numIter inside goroutines, sometimes calculate is not valid
+	if sr > float64(100) {
+		sr = float64(100)
+	}
+
 	// Calculate fail rate
 	fr := percent.PercentOf(int(st.numIterFail), int(st.numIter))
+
+	// Because numIter inside goroutines, sometimes calculate is not valid
+	if fr > float64(100) {
+		fr = float64(100)
+	}
 
 	fmt.Println(strings.Join([]string{
 		st.getHeader(),
