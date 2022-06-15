@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Bearaujus/bthreads/pkg/util"
+	"github.com/dariubs/percent"
 	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 )
@@ -232,13 +233,13 @@ func (st *instance) printSimpleLog() {
 	td := time.Now().Local().Sub(st.startTime)
 
 	// Calculate iter speed
-	ths := float64(st.numIter) / float64(td.Seconds())
+	ths := float32(st.numIter) / float32(td.Seconds())
 
 	// Calculate success rate
-	sr := (float64(st.numIterSuccess) / float64(st.numIter)) * float64(100)
+	sr := percent.PercentOf(int(st.numIterSuccess), int(st.numIter))
 
 	// Calculate fail rate
-	fr := (float64(st.numIterFail) / float64(st.numIter)) * float64(100)
+	fr := percent.PercentOf(int(st.numIterFail), int(st.numIter))
 
 	fmt.Println(strings.Join([]string{
 		st.getHeader(),
