@@ -18,7 +18,7 @@ import (
 // App Const
 const (
 	appName    = "BThreads"
-	appVersion = "1.8"
+	appVersion = "1.9"
 )
 
 // Default Const
@@ -190,14 +190,12 @@ func (st *instance) log() {
 		// Clear screen
 		util.ClearScreen()
 
-		// Print simple log if hideWorkerData is true
+		// Print header
 		st.printSimpleLog()
-		if st.hideWorkerData {
-			continue
+		if !st.hideWorkerData {
+			// Print advanced log if hideWorkerData is false
+			st.printWorkerLog()
 		}
-
-		// Print advanced log i hideWorkerData is false
-		st.printWorkerLog()
 
 		// Make delay relative to logDelay
 		<-time.After(st.logDelay)
